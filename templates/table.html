@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<title>Derivative map</title>
+
+ <style>
+   table {
+    width: 100%; /* Ширина таблицы */
+   }
+  </style>
+</head>
+<body>
+
+<h3 class="text-center pt-3">Карта фьючерсов и опционов</h3>
+
+<div class="container alert alert-info px-5" role="alert">
+  <ul class="list-unstyled">
+    <ul>
+    <li>Карта экспираций (исполнений) фьючерсов и опционов строится автоматически и ежедневно на основе данных с биржи (последнее обновление было {{ time_upd }}).</li>
+    <li>Способ использования: выбираете базовый актив (в строках), затем год и месяц экспирации финансовых инструментов (в столбцах) и на их пересечении находите ячейку,
+    которая содержит тикер, количество открытых контрактов, дату исполнения, а также ссылки на параметры. </li>
+    <li>Символы "F" (фьючерсы) и "O" (опционы) определяют тип инструментов в ячейке.</li>
+    <li>Интенсивностью цвета отображается относительное количество открытых контрактов:
+      <div class="row">
+        <div class="col-4 text-right">MIN</div>
+        <div class="col-4">
+            <table class="table table-sm">
+            <tbody>
+              <tr style="text-align:center">
+                {% for color in colors.values() %}
+                <td bgcolor={{ color }}><font color={{ color }}>___</font></td>
+                {% endfor %}
+              </tr>
+            </tbody>
+            </table>
+        </div>
+        <div class="col-1 text-left">MAX</div>
+        </div>
+      </li>
+      <li>
+        <div class="form-group">
+          <label for="exampleFormControlSelect1">Выбрать биржу:</label>
+          <div class="row">
+          <div class="col-11">
+          <select class="form-control" id="exampleFormControlSelect1">
+            <option>Московская Биржа (MOEX)</option>
+            <option disabled>in progress - Chicago Mercantile Exchange (CME)</option>
+            <option disabled>in progress - Chicago Board Options Exchange (CBOE)</option>
+            <option disabled>in progress - Eurex</option>
+          </select>
+          </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </ul>
+</div>
+
+{% for section, underlyings in dict_section.items() %}
+<div class="px-2">
+  <b>{{ section }}</b>
+<table class="table table-hover table-bordered table-sm">
+  <thead class="thead-light">
+    <tr>
+      <th scope="col"><font size=-1>Год месяц</font><br><font color=#080808>Тикер</font></th>
+      {% for month_column in lst_months %}
+      <th style="text-align:center" scope="col"><font size=-1>{{ month_column }}</font></th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+
+  {% for underlying in underlyings %}
+    <tr>
+      <th scope="row">
+        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" data-placement="right" title="{{ dict_undrl.get(underlying)['name'] }}">
+            <strong> {{ underlying }} </strong>
+          </span>
+      </th>
+      {% for month_column in lst_months %}
+        {% if dict_matrix[underlying].get(month_column) %}
+          {% if dict_matrix[underlying].get(month_column).get("cell_params") != {} %}
+      <td style="text-align:center" bgcolor="{{ dict_matrix[underlying][month_column]["cell_params"]["color"] }}">
+        <!-- Button trigger modal -->
+            <button type="button" class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="{{ "#{}".format(dict_matrix[underlying][month_column]["cell_name"]) }}">
+          <font size=-1>{{ dict_matrix[underlying][month_column]["cell_params"]["label"] }}</font>
+            </button>
+            <!-- Modal -->
+            <div class="modal bd-example-modal-lg" id={{ dict_matrix[underlying][month_column]["cell_name"] }} tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel"><a href="{{ dict_undrl.get(underlying)['web_page'] }}">Деривативы на {{ dict_undrl.get(underlying)["name"] }}</a> с исполнением {{ month_column }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div style="text-align:left" class="modal-body">
+                    <h5>Фьючерсы:</h5>
+                    {% if dict_matrix[underlying][month_column]["futures"] %}
+                    {% for contract in dict_matrix[underlying][month_column]["futures"] %}
+                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }}>параметры</a>)</p>
+                    {% endfor %}
+                    {% else %}
+                    <p> - </p>
+                    {% endif %}
+                    <hr>
+                    <h5>Опционы:</h5>
+                    {% if dict_matrix[underlying][month_column]["options"] %}
+                    {% for contract in dict_matrix[underlying][month_column]["options"] %}
+                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }}>параметры</a>/<a href={{ "https://www.moex.com/ru/derivatives/optionsdesk.aspx?code={}#{}".format(contract["underlying_future"], contract["lasttradedate"].strftime("%d%m%Y")) }}>доска</a>)</p>
+                    {% endfor %}
+                    {% else %}
+                    <p> - </p>
+                    {% endif %}
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+      </td>
+        {% else %}
+      <td></td>
+        {% endif %}
+        {% else %}
+      <td></td>
+        {% endif %}
+       {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endfor %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+   $(function () {
+     $('[data-toggle="tooltip"]').tooltip()
+   });
+</script>
+</body>
+</html>
