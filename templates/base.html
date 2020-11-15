@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<title>Derivative map</title>
+
+ <style>
+   table {
+    width: 100%; /* Ширина таблицы */
+   }
+      html {
+      position: relative;
+      min-height: 100%;
+    }
+    body {
+      margin-bottom: 60px; /* Margin bottom by footer height */
+    }
+    .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px; /* Set the fixed height of the footer here */
+      line-height: 60px; /* Vertically center the text there */
+    }
+    .navbar {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+<header class="container py-3">
+  <nav class="navbar navbar-light bg-light">
+  <a class="h3 nav-link text-secondary" href="{{ url_for("index") }}">
+    <img src="/static/pictures/logo_640_2.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+       Derivative Map
+  </a>
+    <ul class="navbar-nav">
+    <p class="h3 text-center nav-link">Карта фьючерсов и опционов</p>
+    </ul>
+    <a class="nav-link text-secondary" href="{{ url_for("feedback") }}">Форма обратной связи</a>
+    <a class="nav-link text-secondary" href="{{ url_for("donate") }}">Пожертвование</a>
+</nav>
+</header>
+
+  {% block container %} {% endblock %}
+
+  <footer class="footer pt-2">
+    <nav class="container navbar navbar-light bg-light">
+      <ul class="navbar-nav mr-auto">
+        <p class="h4 nav-link">Derivative Map</p>
+      </ul>
+      <a class="text-muted" href="#">Project DAO 2020</a>
+    </nav>
+  </footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+   $(function () {
+     $('[data-toggle="tooltip"]').tooltip()
+   });
+</script>
+</body>
+</html>

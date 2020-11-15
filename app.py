@@ -8,10 +8,11 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_migrate import Migrate
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-# from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 
 
 from models import db, Underlying, Cell, Future, Option, FeedBack, AdminUser, Edition
+from forms import ClientFeedBack
 from functions import get_data, get_dict_matrix, get_colors, iss_urls, get_list_months, round_up_log
 from functions import get_dict_section_undrl
 from config import Config
@@ -23,6 +24,7 @@ app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
 admin = Admin(app)
+csrf = CSRFProtect(app)
 
 
 class MyUserView(ModelView):
@@ -198,6 +200,37 @@ def index():
                            lst_months=get_list_months(df_fut),
                            dict_matrix=get_dict_matrix(df_cell, df_fut, df_opt),
                            time_upd=current_date)
+
+
+@app.route("/feedback/", methods=["GET", "POST"])
+def feedback():
+    form = ClientFeedBack()
+
+    if request.method == 'POST':
+        input_name = form.client_name.data
+        input_email = form.client_email.data
+        input_phone = form.client_phone.data
+        input_text = form.client_text.data
+
+        db_feedback = FeedBack(user_name=input_name, user_email=input_email, user_phone=input_phone,
+                              user_text=input_text, date_created=datetime.utcnow())
+
+        db.session.add(db_feedback)
+        db.session.commit()
+        return redirect(url_for("confirmed_feedback"))
+
+    return render_template("feedback.html", form=form)
+
+
+@app.route("/confirmed_feedback/", methods=["GET"])
+def confirmed_feedback():
+    return render_template("confirmed_feedback.html")
+
+
+@app.route("/donate/", methods=["GET"])
+def donate():
+    return render_template("donate.html")
+
 
 if __name__ == "__main__":
     app.run()
