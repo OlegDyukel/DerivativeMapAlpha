@@ -32,11 +32,9 @@ class MyUserView(ModelView):
     column_exclude_list = ['password_hash']  # убрать из списка одно или несколько полей
 
 
-admin.add_view(MyUserView(Underlying, db.session))
-admin.add_view(MyUserView(Future, db.session))
-admin.add_view(MyUserView(Option, db.session))
-admin.add_view(MyUserView(Cell, db.session))
-admin.add_view(MyUserView(Edition, db.session))
+# admin.add_view(MyUserView(Underlying, db.session))
+# admin.add_view(MyUserView(Edition, db.session))
+# admin.add_view(MyUserView(FeedBack, db.session))
 
 
 def update_futopt_tables(db_future_nrows, db_option_nrows):
