@@ -41,56 +41,49 @@ def update_futopt_tables(db_future_nrows, db_option_nrows):
     text_errors = []
     data = get_data()
 
-    if 0.5*db_future_nrows < len(data["futures"]):
-        # clear table with staled data
-        db.session.query(Future).delete()
 
-        # write fresh data
-        for row in data["futures"].drop_duplicates().iterrows():
-            future = Future(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
-                            assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
-                            prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
-                            oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
-                            date_created=datetime.utcnow())
-            db.session.add(future)
+    # clear table with staled data
+    db.session.query(Future).delete()
 
-        try:
-            editions = db.session.query(Edition).filter(Edition.table == "futures").first()
-            editions.edition = data["future_edition"]
-            editions.date_created = datetime.utcnow()
-        except AttributeError:
-            editions = Edition(table="futures", edition=data["future_edition"], date_created=datetime.utcnow())
-            db.session.add(editions)
+    # write fresh data
+    for row in data["futures"].drop_duplicates().iterrows():
+        future = Future(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
+                        assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
+                        prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
+                        oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
+                        date_created=datetime.utcnow())
+        db.session.add(future)
 
-        db.session.commit()
-    else:
-        text_errors.append("a new data of futures has too little rows")
+    try:
+        editions = db.session.query(Edition).filter(Edition.table == "futures").first()
+        editions.edition = data["future_edition"]
+        editions.date_created = datetime.utcnow()
+    except AttributeError:
+        editions = Edition(table="futures", edition=data["future_edition"], date_created=datetime.utcnow())
+        db.session.add(editions)
 
 
-    if 0.5*db_option_nrows < len(data["options"]):
-        # clear table with staled data
-        db.session.query(Option).delete()
+    # clear table with staled data
+    db.session.query(Option).delete()
 
-        # write fresh data
-        for row in data["options"].drop_duplicates().iterrows():
-            option = Option(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
-                            assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
-                            prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
-                            oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
-                            underlying_future=row[1].UNDERLYING, date_created=datetime.utcnow())
-            db.session.add(option)
+    # write fresh data
+    for row in data["options"].drop_duplicates().iterrows():
+        option = Option(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
+                        assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
+                        prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
+                        oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
+                        underlying_future=row[1].UNDERLYING, date_created=datetime.utcnow())
+        db.session.add(option)
 
-        try:
-            editions = db.session.query(Edition).filter(Edition.table == "options").first()
-            editions.edition = data["option_edition"]
-            editions.date_created = datetime.utcnow()
-        except AttributeError:
-            editions = Edition(table="options", edition=data["option_edition"], date_created=datetime.utcnow())
-            db.session.add(editions)
+    try:
+        editions = db.session.query(Edition).filter(Edition.table == "options").first()
+        editions.edition = data["option_edition"]
+        editions.date_created = datetime.utcnow()
+    except AttributeError:
+        editions = Edition(table="options", edition=data["option_edition"], date_created=datetime.utcnow())
+        db.session.add(editions)
 
-        db.session.commit()
-    else:
-        text_errors.append("a new data of options has too little rows")
+    db.session.commit()
 
     df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)
     df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)
@@ -98,7 +91,6 @@ def update_futopt_tables(db_future_nrows, db_option_nrows):
 
 
 def update_underlying(df_fut):
-    text_errors = []
     df_undrl = pd.read_sql(db.session.query(Underlying).statement, db.session.bind).set_index('underlying')
     new_set = set(df_fut['assetcode']).difference(set(df_undrl.index))
 
@@ -183,13 +175,16 @@ def index():
 
     # запрашиваем данные если не получили их ранее, когда обновляли базы данных
     if df_fut.empty:
-        df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)
+        df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)\
+            .drop('date_created', axis=1).drop_duplicates()
     if df_opt.empty:
-        df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)
+        df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)\
+            .drop('date_created', axis=1).drop_duplicates()
     if df_undrl.empty:
         df_undrl = pd.read_sql(db.session.query(Underlying).statement, db.session.bind)\
             .set_index('underlying')
-    df_cell = pd.read_sql(db.session.query(Cell).statement, db.session.bind)
+    df_cell = pd.read_sql(db.session.query(Cell).statement, db.session.bind)\
+        .drop('date_created', axis=1).drop_duplicates()
 
     return render_template("table.html",
                            colors=get_colors(),
@@ -228,6 +223,23 @@ def confirmed_feedback():
 @app.route("/donate/", methods=["GET"])
 def donate():
     return render_template("donate.html")
+
+
+@app.route("/update_tables/", methods=["GET"])
+def update_tables():
+    db_future_nrows = db.session.query(Future).count()
+    db_option_nrows = db.session.query(Option).count()
+
+    df_fut, df_opt, _ = update_futopt_tables(db_future_nrows, db_option_nrows)
+    df_undrl = update_underlying(df_fut)
+    update_matrix(df_fut, df_opt, df_undrl)
+
+    return render_template("update_tables.html",
+                           n_db_fut=db.session.query(Future).count(),
+                           n_db_opt=db.session.query(Option).count(),
+                           n_db_undrl=db.session.query(Underlying).count(),
+                           n_db_matrix=db.session.query(Cell).count(),
+                           n_db_feedback=db.session.query(FeedBack).count())
 
 
 if __name__ == "__main__":

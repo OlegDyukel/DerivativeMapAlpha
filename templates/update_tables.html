@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block container %}
+
+  <main class="container">
+    <div class="container alert alert-info px-5" role="alert">
+
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-6">
+          <p>Underlyings(77): {{ n_db_undrl }}</p>
+          <p>Futures(283): {{ n_db_fut }}</p>
+          <p>Options(124): {{ n_db_opt }}</p>
+          <p>Matrix(303): {{ n_db_matrix }}</p>
+          <p>Feedbacks: {{ n_db_feedback }}</p>
+        </div>
+        </div>
+  </main>
+
+{% endblock %}
