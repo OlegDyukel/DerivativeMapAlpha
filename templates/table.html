@@ -80,7 +80,7 @@
               <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel"><a href="{{ dict_undrl.get(underlying)['web_page'] }}">Деривативы на {{ dict_undrl.get(underlying)["name"] }}</a> с исполнением {{ month_column }}</h5>
+                    <h5 class="modal-title" id="exampleModalLabel"><a href="{{ dict_undrl.get(underlying)['web_page'] }}" target="_blank">Деривативы на {{ dict_undrl.get(underlying)["name"] }}</a> с исполнением {{ month_column }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                       <span aria-hidden="true">&times;</span>
                     </button>
@@ -89,7 +89,7 @@
                     <h5>Фьючерсы:</h5>
                     {% if dict_matrix[underlying][month_column]["futures"] %}
                     {% for contract in dict_matrix[underlying][month_column]["futures"] %}
-                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }}>параметры</a>)</p>
+                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }} target="_blank">параметры</a>)</p>
                     {% endfor %}
                     {% else %}
                     <p> - </p>
@@ -98,7 +98,7 @@
                     <h5>Опционы:</h5>
                     {% if dict_matrix[underlying][month_column]["options"] %}
                     {% for contract in dict_matrix[underlying][month_column]["options"] %}
-                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }}>параметры</a>/<a href={{ "https://www.moex.com/ru/derivatives/optionsdesk.aspx?code={}#{}".format(contract["underlying_future"], contract["lasttradedate"].strftime("%d%m%Y")) }}>доска</a>)</p>
+                    <p>{{ "{} - открыто {:,} контрактов, исполняется {}".format(contract["shortname"], contract["prevopenposition"], contract["lasttradedate"].strftime("%d-%m-%Y")) }} (<a href={{ "https://www.moex.com/ru/contract.aspx?code={}".format(contract["secid"]) }} target="_blank">параметры</a>/<a href={{ "https://www.moex.com/ru/derivatives/optionsdesk.aspx?code={}#{}".format(contract["underlying_future"], contract["lasttradedate"].strftime("%d%m%Y")) }} target="_blank">доска</a>)</p>
                     {% endfor %}
                     {% else %}
                     <p> - </p>
