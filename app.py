@@ -39,54 +39,57 @@ class MyUserView(ModelView):
 
 def update_futopt_tables(db_future_nrows, db_option_nrows):
     text_errors = []
-    data = get_data()
-
-
-    # clear table with staled data
-    db.session.query(Future).delete()
-
-    # write fresh data
-    for row in data["futures"].drop_duplicates().iterrows():
-        future = Future(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
-                        assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
-                        prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
-                        oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
-                        date_created=datetime.utcnow())
-        db.session.add(future)
-
     try:
-        editions = db.session.query(Edition).filter(Edition.table == "futures").first()
-        editions.edition = data["future_edition"]
-        editions.date_created = datetime.utcnow()
-    except AttributeError:
-        editions = Edition(table="futures", edition=data["future_edition"], date_created=datetime.utcnow())
-        db.session.add(editions)
+        data = get_data()
+    except:
+        df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)
+        df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)
+    else:
+        # clear table with staled data
+        db.session.query(Future).delete()
+
+        # write fresh data
+        for row in data["futures"].drop_duplicates().iterrows():
+            future = Future(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
+                            assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
+                            prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
+                            oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
+                            date_created=datetime.utcnow())
+            db.session.add(future)
+
+        try:
+            editions = db.session.query(Edition).filter(Edition.table == "futures").first()
+            editions.edition = data["future_edition"]
+            editions.date_created = datetime.utcnow()
+        except AttributeError:
+            editions = Edition(table="futures", edition=data["future_edition"], date_created=datetime.utcnow())
+            db.session.add(editions)
 
 
-    # clear table with staled data
-    db.session.query(Option).delete()
+        # clear table with staled data
+        db.session.query(Option).delete()
 
-    # write fresh data
-    for row in data["options"].drop_duplicates().iterrows():
-        option = Option(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
-                        assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
-                        prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
-                        oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
-                        underlying_future=row[1].UNDERLYING, date_created=datetime.utcnow())
-        db.session.add(option)
+        # write fresh data
+        for row in data["options"].drop_duplicates().iterrows():
+            option = Option(secid=row[1].SECID, shortname=row[1].SHORTNAME, lasttradedate=row[1].LASTTRADEDATE,
+                            assetcode=row[1].ASSETCODE, prevopenposition=row[1].PREVOPENPOSITION,
+                            prevsettleprice=row[1].PREVSETTLEPRICE, oi_rub=row[1].OI_RUB,
+                            oi_percentage=row[1].OI_PERCENTAGE, lasttrademonth=row[1].LASTTRADEMONTH,
+                            underlying_future=row[1].UNDERLYING, date_created=datetime.utcnow())
+            db.session.add(option)
 
-    try:
-        editions = db.session.query(Edition).filter(Edition.table == "options").first()
-        editions.edition = data["option_edition"]
-        editions.date_created = datetime.utcnow()
-    except AttributeError:
-        editions = Edition(table="options", edition=data["option_edition"], date_created=datetime.utcnow())
-        db.session.add(editions)
+        try:
+            editions = db.session.query(Edition).filter(Edition.table == "options").first()
+            editions.edition = data["option_edition"]
+            editions.date_created = datetime.utcnow()
+        except AttributeError:
+            editions = Edition(table="options", edition=data["option_edition"], date_created=datetime.utcnow())
+            db.session.add(editions)
 
-    db.session.commit()
+        db.session.commit()
 
-    df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)
-    df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)
+        df_fut = pd.read_sql(db.session.query(Future).statement, db.session.bind)
+        df_opt = pd.read_sql(db.session.query(Option).statement, db.session.bind)
     return [df_fut, df_opt, text_errors]
 
 
