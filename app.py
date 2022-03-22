@@ -151,10 +151,10 @@ def index():
     # грубо проверяем что в БД консистентные данные. проверка по кол-ву записей (50 записей для фьючей)
     db_future_nrows = db.session.query(Future).count()
     db_option_nrows = db.session.query(Option).count()
-    if db_future_nrows < 100 or db_option_nrows < 50:
-        df_fut, df_opt, _ = update_futopt_tables(db_future_nrows, db_option_nrows)
-        df_undrl = update_underlying(df_fut)
-        update_matrix(df_fut, df_opt, df_undrl)
+    # if db_future_nrows < 100 or db_option_nrows < 50:
+    #     df_fut, df_opt, _ = update_futopt_tables(db_future_nrows, db_option_nrows)
+    #     df_undrl = update_underlying(df_fut)
+    #     update_matrix(df_fut, df_opt, df_undrl)
 
     # во-вторых проверяем совпадение даты сегодня и даты обновления таблицы
     try:
@@ -165,16 +165,16 @@ def index():
         db_option_date = "1999-09-19"
     current_date = datetime.utcnow().strftime("%Y-%m-%d")
 
-    if db_future_date != current_date or db_option_date != current_date:
-        # далее проверяем версионность данных - в выходные даты могут не совпадать, но в источнике также не обновл
-        db_future_edition = db.session.query(Edition).filter(Edition.table == "futures").first().edition
-        db_option_edition = db.session.query(Edition).filter(Edition.table == "options").first().edition
-        iss_future_edition = requests.get(iss_urls()["query_futures_edition"]).json()["dataversion"]["data"][0][0]
-        iss_option_edition = requests.get(iss_urls()["query_options_edition"]).json()["dataversion"]["data"][0][0]
-        if db_future_edition != iss_future_edition or db_option_edition != iss_option_edition:
-            df_fut, df_opt, _ = update_futopt_tables(db_future_nrows, db_option_nrows)
-            df_undrl = update_underlying(df_fut)
-            update_matrix(df_fut, df_opt, df_undrl)
+    # if db_future_date != current_date or db_option_date != current_date:
+    #     # далее проверяем версионность данных - в выходные даты могут не совпадать, но в источнике также не обновл
+    #     db_future_edition = db.session.query(Edition).filter(Edition.table == "futures").first().edition
+    #     db_option_edition = db.session.query(Edition).filter(Edition.table == "options").first().edition
+    #     iss_future_edition = requests.get(iss_urls()["query_futures_edition"]).json()["dataversion"]["data"][0][0]
+    #     iss_option_edition = requests.get(iss_urls()["query_options_edition"]).json()["dataversion"]["data"][0][0]
+    #     if db_future_edition != iss_future_edition or db_option_edition != iss_option_edition:
+    #         df_fut, df_opt, _ = update_futopt_tables(db_future_nrows, db_option_nrows)
+    #         df_undrl = update_underlying(df_fut)
+    #         update_matrix(df_fut, df_opt, df_undrl)
 
     # запрашиваем данные если не получили их ранее, когда обновляли базы данных
     if df_fut.empty:
